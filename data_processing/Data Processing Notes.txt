@@ -1,0 +1,17 @@
+# 2012-2015 -------------------------
+The 113th congressional district shapefile is missing geometry for n=12 congressional districts:
+2510 (MA), 3413 (NJ), 2615 (MI), 3917 (OH), 3918 (OH), 1719 (IL), 4219 (PA), 3628 (NY), 3629 (NY), 1905 (IA), 2207 (LA), and 2909 (MO).
+
+Political metric data for the 2012–2015 analysis period were calculated by averaging values from the 112th and 113th Congresses. These metrics were appended to the 113th congressional district shapefile. Consequently, congressional districts lacking geometry in the 113th congressional district shapefile also lack spatial boundaries for the corresponding political metrics. This should be removed prior to analysis.
+
+Additionally, the 2010 Decennial Census data (corresponding to the 111th Congress) do not include racial composition data for the following n=12 congressional districts due to redistricting:
+5310 (WA), 1314 (GA), 1226 (FL), 1227 (FL), 4833 (TX), 4834 (TX), 4835 (TX), 4836 (TX), 3204 (NV), 4904 (UT), 4507 (SC), and 0409 (AZ).
+
+In total, 24 congressional districts with either missing spatial boundaries or missing census covariate data were excluded from the analysis.
+
+# 2020-2024 -------------------------
+The 118th congressional district shapefile is missing geometry for n=7 congressional districts:
+0653 (CA), 1718 (IL), 2614 (MI), 3627 (NY), 3916 (OH), 4218 (PA), 5403 (WV)
+Additionally, the 2020 Decennial Census data do not include racial composition for the same districts. These were excluded from the analysis.
+
+
