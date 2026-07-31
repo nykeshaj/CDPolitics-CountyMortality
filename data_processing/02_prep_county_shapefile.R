@@ -175,9 +175,10 @@ aggregate_mortality_data_by_county <- function(mort_extract,yr){
 
   # all CVD deaths
   all_cvd_deaths <- mort_df |>
-    filter(icd_cat == "all_cvd") |>
-    group_by(GEOID,age_cat) |>
-    summarise(cvd = sum(count, na.rm = T))
+    filter(!is.na(cvd_type)) |>
+    group_by(GEOID,age_cat,cvd_type) |>
+    summarise(n_deaths = sum(count, na.rm = T))  |>
+    pivot_wider(names_from = cvd_type, values_from = n_deaths)
 
   # create single mortality df per year -----------
   county_mort <- premature_mortality |>
@@ -188,7 +189,7 @@ aggregate_mortality_data_by_county <- function(mort_extract,yr){
     full_join(all_cvd_deaths,by = c("GEOID","age_cat")) |>
     mutate(year = yr) |>
     dplyr::select(year,GEOID,age_cat,under_5,under_65,influenza,all_cancer,breast_cancer,
-                  colorectal_cancer,lung_cancer,cvd)
+                  colorectal_cancer,lung_cancer,heart_disease)
 
 }
 
@@ -222,7 +223,7 @@ mort_df_12_15 <- mort_df %>%
     county_fips = str_sub(GEOID, 3, 5)) %>%
   left_join(state_codes, join_by(state_fips == state_code)) %>%
   # remove non-contiguous states & territories
-  filter(!state_abbr %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
+  filter(!state %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
 
 mort_df_16_19 <- mort_df %>%
   filter(year %in% c("2016","2017","2018","2019")) |>
@@ -238,7 +239,7 @@ mort_df_16_19 <- mort_df %>%
     county_fips = str_sub(GEOID, 3, 5)) %>%
   left_join(state_codes, join_by(state_fips == state_code)) %>%
   # remove non-contiguous states & territories
-  filter(!state_abbr %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
+  filter(!state %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
 
 mort_df_20_24 <- mort_df %>%
   filter(year %in% c("2020","2021","2022","2023","2024")) |>
@@ -254,7 +255,7 @@ mort_df_20_24 <- mort_df %>%
     county_fips = str_sub(GEOID, 3, 5)) %>%
   left_join(state_codes, join_by(state_fips == state_code)) %>%
   # remove non-contiguous states & territories
-  filter(!state_abbr %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
+  filter(!state %in% c('AK','HI','DC','PR','GU','VI','AS','MP'))
 
 
 #####
@@ -512,18 +513,19 @@ county_sex_age_2020 <- county_sex_age_2020 %>%
 # 4 # create analytic shapefiles
 #####
 
+# For table ------------------------------------------------------
 mort_df_12_15 <- mort_df_12_15 %>%
   left_join(housing_burden15, by = "GEOID") %>%
   left_join(county_sex_age_2010, by = "GEOID") %>%
   dplyr::select(
-    period,GEOID,state_abbr,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
+    period,GEOID,state,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
     under65_deaths=under_65,influenza_deaths=influenza,all_cancer_deaths=all_cancer,
     breast_cancer_deaths=breast_cancer,colorectal_cancer_deaths=colorectal_cancer,
-    lung_cancer_deaths=lung_cancer,cvd_deaths=cvd,severe_housing_burden_pct,
+    lung_cancer_deaths=lung_cancer,heart_disease_deaths=heart_disease,severe_housing_burden_pct,
     severe_housing_burden_count,severe_housing_burden_denom,total_pop,female_pop,
     under5_pop, under65_pop
   ) %>%
-  # append
+  # append geography
   left_join(boundaries_15, by = "GEOID")
 
 
@@ -531,14 +533,14 @@ mort_df_16_19 <- mort_df_16_19 %>%
   left_join(housing_burden19, by = "GEOID") %>%
   left_join(county_sex_age_2010, by = "GEOID")%>%
   dplyr::select(
-    period,GEOID,state_abbr,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
+    period,GEOID,state,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
     under65_deaths=under_65,influenza_deaths=influenza,all_cancer_deaths=all_cancer,
     breast_cancer_deaths=breast_cancer,colorectal_cancer_deaths=colorectal_cancer,
-    lung_cancer_deaths=lung_cancer,cvd_deaths=cvd,severe_housing_burden_pct,
+    lung_cancer_deaths=lung_cancer,heart_disease_deaths=heart_disease,severe_housing_burden_pct,
     severe_housing_burden_count,severe_housing_burden_denom,total_pop,female_pop,
     under5_pop, under65_pop
   ) %>%
-  # append
+  # append geography
   left_join(boundaries_19, by = "GEOID")
 
 
@@ -546,18 +548,63 @@ mort_df_20_24 <- mort_df_20_24 %>%
   left_join(housing_burden24, by = "GEOID") %>%
   left_join(county_sex_age_2020, by = "GEOID")%>%
   dplyr::select(
-    period,GEOID,state_abbr,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
+    period,GEOID,state,state_name,county_name=NAME.x,age_cat,under5_deaths=under_5,
     under65_deaths=under_65,influenza_deaths=influenza,all_cancer_deaths=all_cancer,
     breast_cancer_deaths=breast_cancer,colorectal_cancer_deaths=colorectal_cancer,
-    lung_cancer_deaths=lung_cancer,cvd_deaths=cvd,severe_housing_burden_pct,
+    lung_cancer_deaths=lung_cancer,heart_disease_deaths=heart_disease,severe_housing_burden_pct,
     severe_housing_burden_count,severe_housing_burden_denom,total_pop,female_pop,
     under5_pop, under65_pop
   ) %>%
-  # append
+  # append geography
   left_join(boundaries_24, by = "GEOID")
 
-# -------------
 
-saveRDS(mort_df_12_15,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic_datasets_cnty/aggregate_cnty_deaths_12_15.rds")
-saveRDS(mort_df_16_19,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic_datasets_cnty/aggregate_cnty_deaths_16_19.rds")
-saveRDS(mort_df_20_24,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic_datasets_cnty/aggregate_cnty_deaths_20_24.rds")
+saveRDS(mort_df_12_15,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for table/analytic_datasets_cnty/aggregate_cnty_deaths_12_15.rds")
+saveRDS(mort_df_16_19,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for table/analytic_datasets_cnty/aggregate_cnty_deaths_16_19.rds")
+saveRDS(mort_df_20_24,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for table/analytic_datasets_cnty/aggregate_cnty_deaths_20_24.rds")
+
+
+# For ABRM ------------------------------------------------------
+mort_df_12_15_abrm <- mort_df_12_15 %>%
+  group_by(period,GEOID,state,state_name,county_name) %>%
+  summarise(
+    across(where(is.numeric), ~ sum(.x, na.rm = TRUE)),
+    .groups = "drop") %>%
+  dplyr::select(
+    period,GEOID,state,state_name,county_name,under5_deaths,under65_deaths,
+    influenza_deaths,all_cancer_deaths,breast_cancer_deaths,colorectal_cancer_deaths,
+    lung_cancer_deaths,heart_disease_deaths, severe_housing_burden_count
+  )  %>%
+  # append geography
+  left_join(boundaries_15, by = "GEOID")
+
+mort_df_16_19_abrm <- mort_df_16_19 %>%
+  group_by(period,GEOID,state,state_name,county_name) %>%
+  summarise(
+    across(where(is.numeric), ~ sum(.x, na.rm = TRUE)),
+    .groups = "drop") %>%
+  dplyr::select(
+    period,GEOID,state,state_name,county_name,under5_deaths,under65_deaths,
+    influenza_deaths,all_cancer_deaths,breast_cancer_deaths,colorectal_cancer_deaths,
+    lung_cancer_deaths,heart_disease_deaths, severe_housing_burden_count
+  )  %>%
+  # append geography
+  left_join(boundaries_15, by = "GEOID")
+
+mort_df_20_24_abrm <- mort_df_20_24 %>%
+  group_by(period,GEOID,state,state_name,county_name) %>%
+  summarise(
+    across(where(is.numeric), ~ sum(.x, na.rm = TRUE)),
+    .groups = "drop") %>%
+  dplyr::select(
+    period,GEOID,state,state_name,county_name,under5_deaths,under65_deaths,
+    influenza_deaths,all_cancer_deaths,breast_cancer_deaths,colorectal_cancer_deaths,
+    lung_cancer_deaths,heart_disease_deaths, severe_housing_burden_count
+  )  %>%
+  # append geography
+  left_join(boundaries_24, by = "GEOID")
+
+
+saveRDS(mort_df_12_15_abrm,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for abrm/analytic_datasets_cnty/aggregate_cnty_deaths_12_15.rds")
+saveRDS(mort_df_16_19_abrm,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for abrm/analytic_datasets_cnty/aggregate_cnty_deaths_16_19.rds")
+saveRDS(mort_df_20_24_abrm,"S:SHDH/nethery_spatial_misalignment/clean_data/analytic datasets for abrm/analytic_datasets_cnty/aggregate_cnty_deaths_20_24.rds")

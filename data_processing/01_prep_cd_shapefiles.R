@@ -344,11 +344,41 @@ cd20_24 <- cd20_24 %>%
 
 
 # save datasets --------------------------------------------------------------
+
+# For Table
 saveRDS(cd12_15, here("data","analytic_datasets","filtered_to_period","cd12_15.rds"))
 saveRDS(cd16_19, here("data","analytic_datasets","filtered_to_period","cd16_19.rds"))
 saveRDS(cd20_24, here("data","analytic_datasets","filtered_to_period","cd20_24.rds"))
 
 cd <- bind_rows(cd12_15,cd16_19,cd20_24)
-
 write_xlsx(cd, here("data","analytic_datasets","cd_political_metrics_2012-2024.xlsx"))
 
+
+# For ABRM
+cd12_15_abrm <- cd12_15 %>%
+  dplyr::select(
+    period,GEOID,state_abb,state_name,congress_113,mean_house_dw,
+    mean_senate_dw,state_liberalism_index,poverty_count,race_white_alone,
+    race_black_alone,race_am_indian_ak_native_alone,race_asian_alone,
+    race_native_hawaiian_opi_alone,hispanic_count,geometry
+  )
+
+cd16_19_abrm <- cd16_19 %>%
+  dplyr::select(
+    period,GEOID,state_abb,state_name,congress_115,mean_house_dw,
+    mean_senate_dw,state_liberalism_index,poverty_count,race_white_alone,
+    race_black_alone,race_am_indian_ak_native_alone,race_asian_alone,
+    race_native_hawaiian_opi_alone,hispanic_count,geometry
+  )
+
+cd20_24_abrm <- cd20_24 %>%
+  dplyr::select(
+    period,GEOID,state_abb,state_name,congress_118,mean_house_dw,
+    mean_senate_dw,state_liberalism_index,poverty_count,race_white_alone,
+    race_black_alone,race_am_indian_ak_native_alone,race_asian_alone,
+    race_native_hawaiian_opi_alone,hispanic_count,geometry
+  )
+
+saveRDS(cd12_15_abrm, here("data","analytic_datasets","filtered_to_period","cd12_15_abrm.rds"))
+saveRDS(cd16_19_abrm, here("data","analytic_datasets","filtered_to_period","cd16_19_abrm.rds"))
+saveRDS(cd20_24_abrm, here("data","analytic_datasets","filtered_to_period","cd20_24_abrm.rds"))
