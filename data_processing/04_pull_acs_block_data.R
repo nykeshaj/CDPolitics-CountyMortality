@@ -4,6 +4,7 @@ library(data.table)
 library(tibble)
 library(stringr)
 library(tidyr)
+library(here)
 library(purrr)
 library(parallel)
 
@@ -34,23 +35,20 @@ excluded.fips <- c("02", "15", "60", "61", "72", "11",
                    "66", "67", "71", "72", "73", "74",
                    "75", "76", "77", "78", "79")
 
-geoid.2016 <- tigris::counties(year=2016) |>
+geoid.2016 <- (tigris::counties(year=2016) |>
   sf::st_drop_geometry() |>
   filter(! STATEFP %in% excluded.fips) |>
-  mutate(GEOID=str_c(STATEFP, COUNTYFP)) |>
-  select(GEOID)
+  mutate(GEOID=str_c(STATEFP, COUNTYFP)))$GEOID
 
-geoid.2020 <- tigris::counties(year=2020) |>
+geoid.2020 <- (tigris::counties(year=2020) |>
   sf::st_drop_geometry() |>
   filter(! STATEFP %in% excluded.fips) |>
-  mutate(GEOID=str_c(STATEFP, COUNTYFP)) |>
-  select(GEOID)
+  mutate(GEOID=str_c(STATEFP, COUNTYFP)))$GEOID
 
-geoid.2024 <- tigris::counties(year=2024) |>
+geoid.2024 <- (tigris::counties(year=2024) |>
   sf::st_drop_geometry() |>
   filter(! STATEFP %in% excluded.fips) |>
-  mutate(GEOID=str_c(STATEFP, COUNTYFP)) |>
-  select(GEOID)
+  mutate(GEOID=str_c(STATEFP, COUNTYFP)))$GEOID
 
 # 3. Make helper functions for pulling data -----
 
@@ -88,32 +86,37 @@ pull_county_bg_data <- function(county.geoid, year) {
 clean_county_bg_data <- function(bg.data) {
   rename.vars <- stats::setNames(vars.dict$var, vars.dict$shortname)
 
-
-  bg.data <- bg.data |>
-    select(GEOID, variable, estimate) |>
-    pivot_wider(
-      names_from=variable,
-      values_from=estimate,
-      id_cols=c("GEOID")
-    ) |>
-    rename(
-      all_of(rename.vars)
-    ) |>
-    mutate(
-      black_pop = pop_black_nh + pop_black_h,
-      asian_pop = pop_asian_nh + pop_asian_h,
-      naan_pop  = pop_naan_nh  + pop_naan_h ,
-      pov_pop   = pop_icr_und_pt_5 + pop_icr_btwn_.5_.99
-    ) |>
-    select(
-      GEOID,
-      pop_race_denom,
-      pop_pov_denom,
-      white_nh_pop,
-      black_pop,
-      asian_pop,
-      pov_pop
-    )
+  tryCatch(
+    {
+      bg.data <- bg.data |>
+        select(GEOID, variable, estimate) |>
+        pivot_wider(
+          names_from=variable,
+          values_from=estimate,
+          id_cols=c("GEOID")
+        ) |>
+        rename(
+          all_of(rename.vars)
+        ) |>
+        mutate(
+          black_pop = pop_black_nh + pop_black_h,
+          asian_pop = pop_asian_nh + pop_asian_h,
+          naan_pop  = pop_naan_nh  + pop_naan_h ,
+          pov_pop   = pop_icr_und_pt_5 + pop_icr_btwn_.5_.99
+        ) |>
+        select(
+          GEOID,
+          pop_race_denom,
+          pop_pov_denom,
+          white_nh_pop,
+          black_pop,
+          asian_pop,
+          pov_pop
+        )
+    }, error = function(e) {
+        print(e)
+      }
+  )
 
   return(bg.data)
 }
@@ -133,22 +136,16 @@ handle_batch <- function(county.geoids, year) {
 
 # 4. Prepare clusters for parallel requesting -----
 
-## Create equal sized batches for parallel processing
-## and separate out stragglers
+## Create batches for parallel processing
 
-## TODO: Figure out if these ACTUALLY have to be the same size or not.
+cuts <- cut(1:length(geoid.2016), breaks=4, labels=FALSE)
+geoid.2016.batches <- unname(split(geoid.2016, cuts))
 
-cuts <- cut(1:nrow(geoid.2016), # 1:3140(==nrow(geoid.2016)), divides by 4
-            breaks=4,
-            labels=FALSE)
+cuts <- cut(1:length(geoid.2020), breaks=4, labels=FALSE)
+geoid.2020.batches <- unname(split(geoid.2020, cuts))
 
-geoid.2016.batches <- unname(split(geoid.2016$GEOID, cuts))
-
-geoid.2020.batches <- unname(split(geoid.2020$GEOID[1:3140], cuts))
-geoid.2020.additional <- geoid.2020$GEOID[3141] # one straggler
-
-geoid.2024.batches <- unname(split(geoid.2024$GEOID[1:3140], cuts))
-geoid.2024.additional <- geoid.2024$GEOID[3141:3142] # two stragglers
+cuts <- cut(1:length(geoid.2024), breaks=4, labels=FALSE)
+geoid.2024.batches <- unname(split(geoid.2024, cuts))
 
 # Create cluster and populate it with the relevant things
 
@@ -181,7 +178,7 @@ bg.data.2016 <- parLapply(cl,
   reduce(rbind)
 
 # Save our work
-saveRds(bg.data.2016, '../block_data/acs_data/bg2016.rds')
+saveRDS(bg.data.2016, here("data", "block_data", "acs_data", "bg2016.rds"))
 
 # Save RAM
 rm(bg.data.2016)
@@ -196,22 +193,15 @@ bg.data.2020 <- parLapply(cl,
                           year=2020) |>
   reduce(rbind)
 
-# Add the additional value
-bg.data.2020 <- c(
-    bg.data.2020,
-    pull_and_clean_county(geoid.2020.additional, 2020)
-  ) |>
-  reduce(rbind)
-
 # Save our work
-saveRds(bg.data.2020, '../block_data/acs_data/bg2020.rds')
+saveRDS(bg.data.2020, here("data", "block_data", "acs_data", "bg2020.rds"))
 
 # Save RAM
 rm(bg.data.2020)
 rm(geoid.2020.batches)
 rm(geoid.2020)
 
-### 7. Grab 2024 batches in parallel -----------
+# 7. Grab 2024 batches in parallel -----------
 
 bg.data.2024 <- parLapply(cl,
                           geoid.2024.batches,
@@ -219,16 +209,8 @@ bg.data.2024 <- parLapply(cl,
                           year=2024) |>
   reduce(rbind)
 
-# Add the additional value
-
-bg.data.2024 <- c(
-    bg.data.2024,
-    handle_batch(geoid.2024.additional, 2024)
-  ) |>
-  reduce(rbind)
-
 # Save our work
-saveRds(bg.data.2024, '../block_data/acs_data/bg2024.rds')
+saveRDS(bg.data.2024, here("data", "block_data", "acs_data", "bg2024.rds"))
 
 # 8. Stop the clusters ------------
 

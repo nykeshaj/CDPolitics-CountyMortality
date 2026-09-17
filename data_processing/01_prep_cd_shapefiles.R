@@ -20,7 +20,7 @@ library(tidyr)
 library(stringr)
 library(magrittr)
 
-library(readxl)
+library(writexl)
 library(here)
 
 # set working directory
@@ -350,7 +350,7 @@ saveRDS(cd12_15, here("data","analytic_datasets","filtered_to_period","cd12_15.r
 saveRDS(cd16_19, here("data","analytic_datasets","filtered_to_period","cd16_19.rds"))
 saveRDS(cd20_24, here("data","analytic_datasets","filtered_to_period","cd20_24.rds"))
 
-cd <- bind_rows(cd12_15,cd16_19,cd20_24)
+cd <- dplyr::select(bind_rows(cd12_15,cd16_19,cd20_24), -geometry)
 write_xlsx(cd, here("data","analytic_datasets","cd_political_metrics_2012-2024.xlsx"))
 
 

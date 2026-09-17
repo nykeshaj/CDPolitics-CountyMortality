@@ -7,6 +7,7 @@ library(tidyr)
 library(stringr)
 library(magrittr)
 library(purrr)
+library(here)
 library(parallel)
 
 # 1. Load 2010 & 2020 census block variables of interest -----------------------
@@ -337,7 +338,8 @@ clusterExport(cl, c("p012_2010_vars_dict", "p12_2020_vars_dict",
 all_blocks_2010 <- parLapply(cl, state_batches,
                              pull_batch_of_states, yr=2010) |>
   reduce(rbind)
-saveRDS(all_blocks_2010, '../block_data/decennial_only/block2010.rds')
+saveRDS(all_blocks_2010,
+  here("data", "block_data", "decennial_only", "block2010.rds"))
 
 rm(all_blocks_2010) # save memory, these are big!
 
@@ -345,5 +347,7 @@ rm(all_blocks_2010) # save memory, these are big!
 all_blocks_2020 <- parLapply(cl, state_batches,
                              pull_batch_of_states, yr=2020) |>
   reduce(rbind)
-saveRDS(all_blocks_2020, '../block_data/decennial_only/block2020.rds')
+saveRDS(all_blocks_2020,
+        here("data", "block_data", "decennial_only", "block2020.rds"))
 
+stopCluster(cl)
