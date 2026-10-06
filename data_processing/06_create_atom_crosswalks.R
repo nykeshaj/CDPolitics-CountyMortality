@@ -33,15 +33,10 @@ bg_centroids <- function(county.geoid, bg.year) {
   state <- substr(county.geoid, 1, 2)
   county <- substr(county.geoid, 3, 5)
 
-  if (bg.year >= 2020) {
-    centroids <- block_groups(state=state, county=county, year=bg.year) |>
-      st_centroid() |>
-      select(GEOID20)
-  } else {
-    centroids <- block_groups(state=state, county=county, year=bg.year) |>
-      st_centroid() |>
-      select(GEOID10)
-  }
+  centroids <- block_groups(state=state, county=county, year=bg.year) |>
+    st_centroid() |>
+    select(GEOID)
+
 
   centroids
 }
@@ -67,7 +62,7 @@ assign_bg_to_atoms <- function(county.geoid, bg.year, atoms) {
   bgs <- bg_centroids(county.geoid, bg.year)
   rel.atoms <- filter(atoms, GEOID.CTY==county.geoid)
 
-  assigned <- blocks |>
+  assigned <- bgs |>
     st_join(
       rel.atoms,
       join=st_within

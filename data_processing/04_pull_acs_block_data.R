@@ -22,6 +22,14 @@ vars.dict <- tribble(
   "B03002_005", "pop_naan_nh",    "non-hispanic native american or alaskan antive population",
   "B03002_015", "pop_naan_h",     "hispanic native american or alaskan native population",
   "B03002_012", "hisp_pop",       "hispanic population",
+  "B25074_001", "hh_rb_universe", "Universe of households",
+  "B25074_009", "burdened_10k",       "renters paying more than 50% of income in gross rent, earning less than 10k/year",
+  "B25074_018", "burdened_20k",       "renters paying more than 50% of income in gross rent, earning less than 20k/year",
+  "B25074_027", "burdened_35k",       "renters paying more than 50% of income in gross rent, earning less than 35k/year",
+  "B25074_036", "burdened_50k",       "renters paying more than 50% of income in gross rent, earning less than 50k/year",
+  "B25074_045", "burdened_75k",       "renters paying more than 50% of income in gross rent, earning less than 75k/year",
+  "B25074_054", "burdened_100k",      "renters paying more than 50% of income in gross rent, earning less than 100k/year",
+  "B25074_063", "burdened_over_100k", "renters paying more than 50% of income in gross rent, earning over 100k/year",
   "C17002_001", "pop_pov_denom",  "population for whom porverty status is determined",
   "C17002_002", "pop_icr_und_pt_5", "population with a ratio of income in the past 12 months to poverty of less than 1/2",
   "C17002_003", "pop_icr_btwn_.5_.99", "population with a ratio of income in the past 12 months to poverty between .5 and .99",
@@ -102,7 +110,9 @@ clean_county_bg_data <- function(bg.data) {
           black_pop = pop_black_nh + pop_black_h,
           asian_pop = pop_asian_nh + pop_asian_h,
           naan_pop  = pop_naan_nh  + pop_naan_h ,
-          pov_pop   = pop_icr_und_pt_5 + pop_icr_btwn_.5_.99
+          pov_pop   = pop_icr_und_pt_5 + pop_icr_btwn_.5_.99,
+          rent_burdened_hh = burdened_10k + burdened_20k + burdened_35k +
+            burdened_50k + burdened_75k + burdened_100k + burdened_over_100k
         ) |>
         select(
           GEOID,
@@ -111,7 +121,11 @@ clean_county_bg_data <- function(bg.data) {
           white_nh_pop,
           black_pop,
           asian_pop,
-          pov_pop
+          naan_pop,
+          pov_pop,
+          hisp_pop,
+          rent_burdened_hh,
+          hh_rb_universe
         )
     }, error = function(e) {
         print(e)
