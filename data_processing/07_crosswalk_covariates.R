@@ -50,11 +50,13 @@ atoms2015.bgs <- bgs2016 |>
   summarize(pop_race_denom = sum(pop_race_denom),
             pop_pov_denom = sum(pop_pov_denom),
             white_nh_pop = sum(white_nh_pop),
-            black_pop = sum(black_pop),
-            asian_pop = sum(asian_pop),
+            black_pop = sum(black_nh_pop),
+            asian_pop = sum(asian_nh_pop),
             pov_pop = sum(pov_pop),
-            naan_pop = sum(naan_pop),
-            hisp_pop = sum(hisp_pop),)
+            naan_pop = sum(naan_nh_pop),
+            hisp_pop = sum(hisp_pop),
+            cost_burdened_hh_denom = sum(cost_burdened_hh_universe),
+            cost_burdened_hh = sum(cost_burdened_hh))
 rm(bgs2016)
 rm(bg16_15_cw)
 
@@ -111,11 +113,13 @@ atoms2019.bgs <- bgs2020 |>
   summarize(pop_race_denom = sum(pop_race_denom),
             pop_pov_denom = sum(pop_pov_denom),
             white_nh_pop = sum(white_nh_pop),
-            black_pop = sum(black_pop),
-            asian_pop = sum(asian_pop),
-            naan_pop = sum(naan_pop),
+            black_pop = sum(black_nh_pop),
+            asian_pop = sum(asian_nh_pop),
+            naan_pop = sum(naan_nh_pop),
             hisp_pop = sum(hisp_pop),
-            pov_pop = sum(pov_pop))
+            pov_pop = sum(pov_pop),
+            cost_burdened_hh_denom = sum(cost_burdened_hh_universe),
+            cost_burdened_hh = sum(cost_burdened_hh))
 rm(bgs2020)
 rm(bg20_19_cw)
 
@@ -174,11 +178,13 @@ atoms2024.bgs <- bgs2024 |>
   summarize(pop_race_denom = sum(pop_race_denom),
             pop_pov_denom = sum(pop_pov_denom),
             white_nh_pop = sum(white_nh_pop),
-            black_pop = sum(black_pop),
-            asian_pop = sum(asian_pop),
-            naan_pop = sum(naan_pop),
+            black_pop = sum(black_nh_pop),
+            asian_pop = sum(asian_nh_pop),
+            naan_pop = sum(naan_nh_pop),
             hisp_pop = sum(hisp_pop),
-            pov_pop = sum(pov_pop))
+            pov_pop = sum(pov_pop),
+            cost_burdened_hh_denom = sum(cost_burdened_hh_universe),
+            cost_burdened_hh = sum(cost_burdened_hh))
 rm(bgs2024)
 rm(bg24_24_cw)
 
