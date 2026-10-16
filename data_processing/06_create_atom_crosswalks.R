@@ -51,7 +51,7 @@ assign_blocks_to_atoms <- function(county.geoid, blocks.year, atoms) {
   assigned <- blocks |>
     st_join(
       rel.atoms,
-      join=st_within
+      join=st_nearest_feature
     ) |>
     st_drop_geometry()
 
@@ -65,7 +65,7 @@ assign_bg_to_atoms <- function(county.geoid, bg.year, atoms) {
   assigned <- bgs |>
     st_join(
       rel.atoms,
-      join=st_within
+      join=st_nearest_feature
     ) |>
     st_drop_geometry()
 
@@ -131,7 +131,7 @@ state_batches <- list(
   c("RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY")
 )
 
-cl <- makeCluster(4)
+cl <- makeCluster(4, type='FORK')
 clusterEvalQ(cl, {
   library(sf)
   library(dplyr)
