@@ -16,16 +16,16 @@ block_centroids <- function(county.geoid, blocks.year) {
   county <- substr(county.geoid, 3, 5)
 
   if (blocks.year >= 2020) {
-    centroids <- blocks(state=state, county=county, year=blocks.year) |>
-      st_centroid() |>
+    points <- blocks(state=state, county=county, year=blocks.year) |>
+      st_point_on_surface() |>
       select(GEOID20)
   } else {
-    centroids <- blocks(state=state, county=county, year=blocks.year) |>
-      st_centroid() |>
+    points <- blocks(state=state, county=county, year=blocks.year) |>
+      st_point_on_surface() |>
       select(GEOID10)
   }
 
-  centroids
+  points
 }
 
 bg_centroids <- function(county.geoid, bg.year) {
@@ -33,12 +33,12 @@ bg_centroids <- function(county.geoid, bg.year) {
   state <- substr(county.geoid, 1, 2)
   county <- substr(county.geoid, 3, 5)
 
-  centroids <- block_groups(state=state, county=county, year=bg.year) |>
-    st_centroid() |>
+  points <- block_groups(state=state, county=county, year=bg.year) |>
+    st_point_on_surface() |>
     select(GEOID)
 
 
-  centroids
+  points
 }
 
 
