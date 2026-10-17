@@ -37,7 +37,6 @@ bg_centroids <- function(county.geoid, bg.year) {
     st_point_on_surface() |>
     select(GEOID)
 
-
   points
 }
 
@@ -125,13 +124,19 @@ create_bg_cw <- function(states, bg.year, atoms) {
 ### 2. Setup for parallel compute ----------------------------------------------
 
 state_batches <- list(
-  c("AL","AZ","AR","CA","CO","CT","DE","FL","GA","ID","IL","IN"),
-  c("IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT"),
-  c("NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA"),
-  c("RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY")
+  c("AL","AZ","AR","CA","CO","CT"),
+  c("DE","FL","GA","ID","IL","IN"),
+  c("IA","KS","KY","LA","ME","MD"),
+  c("MA","MI","MN","MS","MO","MT"),
+  c("NE","NV","NH","NJ","NM","NY"),
+  c("NC","ND","OH","OK","OR","PA"),
+  c("RI","SC","SD","TN","TX","UT"),
+  c("VT","VA","WA","WV","WI","WY")
 )
 
-cl <- makeCluster(4, type='FORK')
+#state_batches <- list(c('AR'), c('GA'), c('KY'), c('MN'), c('NH'), c('OH'), c('SD'), c('WA'))
+
+cl <- makeCluster(8)
 clusterEvalQ(cl, {
   library(sf)
   library(dplyr)
@@ -207,8 +212,9 @@ if (!file.exists(save_loc)) {
 ## 2020 blocks to atoms24
 save_loc <- here('data', 'crosswalks', 'blocks20_atoms24.rds')
 if (!file.exists(save_loc))  {
-  atoms24 <- readRDS('data/atom_datasets/atoms24.rds')
-  blocks20_atoms19_cw <- parLapply(cl,
+  atoms24 <- readRDS(here('data', 'atom_datasets',  'atoms24.rds'))
+#  atoms24 <- readRDS('data/atom_datasets/atoms24.rds')
+  blocks20_atoms24_cw <- parLapply(cl,
                                    state_batches,
                                    create_blocks_cw,
                                    blocks.year=2024,
