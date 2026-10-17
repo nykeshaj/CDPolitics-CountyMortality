@@ -20,6 +20,7 @@ block_centroids <- function(county.geoid, blocks.year) {
       st_point_on_surface() |>
       select(GEOID20)
   } else {
+
     points <- blocks(state=state, county=county, year=blocks.year) |>
       st_point_on_surface() |>
       select(GEOID10)
@@ -45,6 +46,14 @@ bg_centroids <- function(county.geoid, bg.year) {
 
 assign_blocks_to_atoms <- function(county.geoid, blocks.year, atoms) {
   blocks <- block_centroids(county.geoid, blocks.year)
+
+  # two relevant border changes occurred at this time period that need
+  # accounted for
+  # 1. Shannon County was renamed Oglala Lakota County (46113 -> 46102)
+  # 2. Bedford City rejoined Bedford County (51515 -> 51019)
+  if (county.geoid == '51515') { county.geoid <- '51019' }
+  if (county.geoid == '46113') { county.geoid <- '46102' }
+
   rel.atoms <- filter(atoms, GEOID.CTY==county.geoid)
 
   assigned <- blocks |>
